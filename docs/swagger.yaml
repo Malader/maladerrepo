@@ -1,0 +1,111 @@
+basePath: /api
+definitions:
+  models.PlayersInRoomResponse:
+    properties:
+      error:
+        type: string
+      players:
+        items:
+          $ref: '#/definitions/models.User'
+        type: array
+      room_id:
+        example: room123
+        type: string
+    type: object
+  models.User:
+    properties:
+      email:
+        example: john.doe@example.com
+        type: string
+      id:
+        example: 123e4567-e89b-12d3-a456-426614174000
+        type: string
+      team:
+        example: Red
+        type: string
+      username:
+        example: john_doe
+        type: string
+    type: object
+  models.VerifyCredentialsRequest:
+    properties:
+      password:
+        example: securepassword
+        type: string
+      username:
+        example: john_doe
+        type: string
+    required:
+    - password
+    - username
+    type: object
+  models.VerifyCredentialsResponse:
+    properties:
+      error:
+        type: string
+      user:
+        $ref: '#/definitions/models.User'
+      valid:
+        example: true
+        type: boolean
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: API сервис пользователей для взаимодействия с сервисом авторизации
+    и сервисом игровых комнат
+  title: User Service API
+  version: "1.0"
+paths:
+  /auth/verify:
+    post:
+      consumes:
+      - application/json
+      description: Проверяет правильность введенных данных пользователя
+      parameters:
+      - description: Учетные данные
+        in: body
+        name: credentials
+        required: true
+        schema:
+          $ref: '#/definitions/models.VerifyCredentialsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.VerifyCredentialsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.VerifyCredentialsResponse'
+      summary: Проверка учетных данных пользователя
+      tags:
+      - auth
+  /rooms/{room_id}/players:
+    get:
+      consumes:
+      - application/json
+      description: Возвращает список игроков в указанной игровой комнате
+      parameters:
+      - description: Идентификатор комнаты
+        in: path
+        name: room_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.PlayersInRoomResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.PlayersInRoomResponse'
+      summary: Получение информации об игроках в комнате
+      tags:
+      - room
+swagger: "2.0"
