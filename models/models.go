@@ -1,11 +1,15 @@
 package models
 
+import "gorm.io/gorm"
+
 // User представляет пользователя системы
 type User struct {
-	ID       string `json:"id" example:"123e4567-e89b-12d3-a456-426614174000"`
-	Username string `json:"username" example:"john_doe"`
-	Email    string `json:"email" example:"john.doe@example.com"`
-	Team     string `json:"team" example:"Red"`
+	ID           string         `json:"id" gorm:"primaryKey;type:uuid;default:uuid_generate_v4()"`
+	Username     string         `json:"username" gorm:"uniqueIndex;not null"`
+	Email        string         `json:"email" gorm:"uniqueIndex;not null"`
+	PasswordHash string         `json:"-" gorm:"not null"`
+	Team         string         `json:"team"`
+	CreatedAt    gorm.DeletedAt `json:"-"`
 }
 
 // VerifyCredentialsRequest представляет запрос на проверку учетных данных
@@ -18,6 +22,7 @@ type VerifyCredentialsRequest struct {
 type VerifyCredentialsResponse struct {
 	Valid bool   `json:"valid" example:"true"`
 	User  User   `json:"user,omitempty"`
+	Token string `json:"token,omitempty"`
 	Error string `json:"error,omitempty"`
 }
 
