@@ -1,4 +1,3 @@
-// handlers/authorize.go
 package handlers
 
 import (
@@ -12,8 +11,7 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 )
 
-// Secret key для JWT. В продакшен-среде храните его безопасно (например, в переменных окружения)
-var jwtSecret = []byte("your_secret_key")
+var jwtSecret = []byte("$JWT_SECRET")
 
 // AuthorizeUser обрабатывает запросы на авторизацию пользователя
 // @Summary Авторизация пользователя
@@ -38,7 +36,6 @@ func AuthorizeUser(c *gin.Context) {
 		return
 	}
 
-	// Поиск пользователя по username
 	var user models.User
 	if err := DB.Where("username = ?", req.Username).First(&user).Error; err != nil {
 		c.JSON(http.StatusBadRequest, models.AuthorizeResponse{
@@ -50,7 +47,6 @@ func AuthorizeUser(c *gin.Context) {
 		return
 	}
 
-	// Проверка пароля
 	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(req.Password)); err != nil {
 		c.JSON(http.StatusBadRequest, models.AuthorizeResponse{
 			Error: models.Error{
@@ -61,11 +57,10 @@ func AuthorizeUser(c *gin.Context) {
 		return
 	}
 
-	// Генерация JWT-токена
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"user_id":  user.ID,
 		"username": user.Username,
-		"exp":      time.Now().Add(time.Hour * 72).Unix(), // Токен действителен 72 часа
+		"exp":      time.Now().Add(time.Hour * 72).Unix(),
 	})
 
 	tokenString, err := token.SignedString(jwtSecret)
@@ -79,7 +74,6 @@ func AuthorizeUser(c *gin.Context) {
 		return
 	}
 
-	// Возвращение успешного ответа с токеном
 	c.JSON(http.StatusCreated, models.AuthorizeResponse{
 		Error: models.Error{
 			ErrorCode:        0,

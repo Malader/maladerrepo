@@ -1,4 +1,3 @@
-// handlers/friend_requests.go
 package handlers
 
 import (
@@ -27,7 +26,6 @@ func SendFriendRequestHandler(c *gin.Context) {
 	senderID := c.Param("id")
 	targetUsername := c.Param("username")
 
-	// Найти отправителя по ID
 	var sender models.User
 	if err := DB.Where("id = ?", senderID).First(&sender).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
@@ -48,7 +46,6 @@ func SendFriendRequestHandler(c *gin.Context) {
 		return
 	}
 
-	// Найти целевого пользователя по username
 	var target models.User
 	if err := DB.Where("username = ?", targetUsername).First(&target).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
@@ -69,7 +66,6 @@ func SendFriendRequestHandler(c *gin.Context) {
 		return
 	}
 
-	// Проверить, не отправляет ли пользователь запрос самому себе
 	if sender.ID == target.ID {
 		c.JSON(http.StatusBadRequest, models.SendFriendRequestResponse{
 			Error: models.Error{
@@ -95,7 +91,6 @@ func SendFriendRequestHandler(c *gin.Context) {
 		}
 	*/
 
-	// Проверить, являются ли пользователи уже друзьями
 	var count int64
 	DB.Model(&sender).Where("friends.id = ?", target.ID).Count(&count)
 	if count > 0 {
@@ -108,10 +103,8 @@ func SendFriendRequestHandler(c *gin.Context) {
 		return
 	}
 
-	// Проверить, не отправлен ли уже запрос дружбы
 	var existingRequest models.FriendRequest
 	if err := DB.Where("from_user_id = ? AND to_user_id = ?", sender.ID, target.ID).First(&existingRequest).Error; err == nil {
-		// Запрос уже существует
 		c.JSON(http.StatusBadRequest, models.SendFriendRequestResponse{
 			Error: models.Error{
 				ErrorCode:        999,
@@ -121,7 +114,6 @@ func SendFriendRequestHandler(c *gin.Context) {
 		return
 	}
 
-	// Создать новый запрос дружбы
 	friendRequest := models.FriendRequest{
 		FromUserID: sender.ID,
 		ToUserID:   target.ID,
@@ -138,7 +130,6 @@ func SendFriendRequestHandler(c *gin.Context) {
 		return
 	}
 
-	// Успешно отправлено
 	c.JSON(http.StatusOK, models.SendFriendRequestResponse{
 		Error: models.Error{
 			ErrorCode:        0,
@@ -166,7 +157,6 @@ func ConfirmFriendRequestHandler(c *gin.Context) {
 	senderUsername := c.Param("username")
 	confirmation := strings.ToUpper(c.Param("confirmation"))
 
-	// Валидация параметра confirmation
 	if confirmation != "YES" && confirmation != "NO" {
 		c.JSON(http.StatusBadRequest, models.ConfirmFriendRequestResponse{
 			Error: models.Error{
@@ -177,7 +167,6 @@ func ConfirmFriendRequestHandler(c *gin.Context) {
 		return
 	}
 
-	// Найти получателя по ID
 	var receiver models.User
 	if err := DB.Where("id = ?", receiverID).First(&receiver).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
@@ -198,7 +187,6 @@ func ConfirmFriendRequestHandler(c *gin.Context) {
 		return
 	}
 
-	// Найти отправителя по username
 	var sender models.User
 	if err := DB.Where("username = ?", senderUsername).First(&sender).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
@@ -219,7 +207,6 @@ func ConfirmFriendRequestHandler(c *gin.Context) {
 		return
 	}
 
-	// Найти запрос дружбы от отправителя к получателю
 	var friendRequest models.FriendRequest
 	if err := DB.Where("from_user_id = ? AND to_user_id = ?", sender.ID, receiver.ID).First(&friendRequest).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
@@ -240,7 +227,6 @@ func ConfirmFriendRequestHandler(c *gin.Context) {
 		return
 	}
 
-	// Проверить текущий статус запроса
 	if friendRequest.Status != models.Pending {
 		c.JSON(http.StatusBadRequest, models.ConfirmFriendRequestResponse{
 			Error: models.Error{
@@ -252,10 +238,8 @@ func ConfirmFriendRequestHandler(c *gin.Context) {
 	}
 
 	if confirmation == "YES" {
-		// Подтверждение запроса дружбы
 		friendRequest.Status = models.Accepted
 
-		// Добавление в друзья обоих пользователей
 		if err := DB.Model(&receiver).Association("Friends").Append(&sender); err != nil {
 			c.JSON(http.StatusInternalServerError, models.ConfirmFriendRequestResponse{
 				Error: models.Error{
@@ -275,11 +259,9 @@ func ConfirmFriendRequestHandler(c *gin.Context) {
 			return
 		}
 	} else {
-		// Отклонение запроса дружбы
 		friendRequest.Status = models.Rejected
 	}
 
-	// Сохранение обновленного статуса запроса дружбы
 	if err := DB.Save(&friendRequest).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, models.ConfirmFriendRequestResponse{
 			Error: models.Error{
@@ -290,7 +272,6 @@ func ConfirmFriendRequestHandler(c *gin.Context) {
 		return
 	}
 
-	// Успешно обработано
 	c.JSON(http.StatusOK, models.ConfirmFriendRequestResponse{
 		Error: models.Error{
 			ErrorCode:        0,
@@ -315,7 +296,6 @@ func DeleteFriendHandler(c *gin.Context) {
 	userID := c.Param("id")
 	friendUsername := c.Param("username")
 
-	// Найти пользователя, который удаляет друга
 	var user models.User
 	if err := DB.Where("id = ?", userID).First(&user).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
@@ -336,7 +316,6 @@ func DeleteFriendHandler(c *gin.Context) {
 		return
 	}
 
-	// Найти друга по username
 	var friend models.User
 	if err := DB.Where("username = ?", friendUsername).First(&friend).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
@@ -357,29 +336,28 @@ func DeleteFriendHandler(c *gin.Context) {
 		return
 	}
 
-	// Проверить, являются ли пользователи друзьями
-	has, err := DB.Model(&user).Association("Friends").Has(&friend)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, models.DeleteFriendResponse{
-			Error: models.Error{
-				ErrorCode:        999,
-				ErrorDescription: "Внутренняя ошибка",
-			},
-		})
-		return
-	}
+	// Нужно пофиксить
+	//has, err := DB.Model(&user).Association("Friends").Has(&friend)
+	//if err != nil {
+	//	c.JSON(http.StatusInternalServerError, models.DeleteFriendResponse{
+	//		Error: models.Error{
+	//			ErrorCode:        999,
+	//			ErrorDescription: "Внутренняя ошибка",
+	//		},
+	//	})
+	//	return
+	//}
+	//
+	//if !has {
+	//	c.JSON(http.StatusBadRequest, models.DeleteFriendResponse{
+	//		Error: models.Error{
+	//			ErrorCode:        999,
+	//			ErrorDescription: "Пользователь не является вашим другом",
+	//		},
+	//	})
+	//	return
+	//}
 
-	if !has {
-		c.JSON(http.StatusBadRequest, models.DeleteFriendResponse{
-			Error: models.Error{
-				ErrorCode:        999,
-				ErrorDescription: "Пользователь не является вашим другом",
-			},
-		})
-		return
-	}
-
-	// Удалить дружбу в обоих направлениях
 	if err := DB.Model(&user).Association("Friends").Delete(&friend); err != nil {
 		c.JSON(http.StatusInternalServerError, models.DeleteFriendResponse{
 			Error: models.Error{
@@ -400,7 +378,6 @@ func DeleteFriendHandler(c *gin.Context) {
 		return
 	}
 
-	// Успешно удалено
 	c.JSON(http.StatusOK, models.DeleteFriendResponse{
 		Error: models.Error{
 			ErrorCode:        0,

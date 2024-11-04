@@ -1,4 +1,3 @@
-// main.go
 package main
 
 import (
@@ -22,36 +21,28 @@ import (
 // @host            localhost:8080
 // @BasePath        /api
 func main() {
-	// Установка режима работы Gin
 	gin.SetMode(gin.ReleaseMode)
 
-	// Инициализация маршрутизатора
 	router := gin.Default()
 
-	// Отключение доверенных прокси
 	router.SetTrustedProxies([]string{})
 
-	// Подключение к базе данных
 	dsn := "host=localhost user=postgres password=yourpassword dbname=userdb port=5432 sslmode=disable TimeZone=Asia/Shanghai"
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		log.Fatalf("Не удалось подключиться к базе данных: %v", err)
 	}
 
-	// Автоматическая миграция моделей
 	err = db.AutoMigrate(&models.User{}, &models.Room{}, &models.FriendRequest{})
 	if err != nil {
 		log.Fatalf("Не удалось мигрировать базу данных: %v", err)
 	}
 
-	// Инициализация базы данных в обработчиках
 	handlers.InitDB(db)
 
-	// Swagger документация
 	docs.SwaggerInfo.BasePath = "/api"
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
-	// Группы маршрутов
 	api := router.Group("/api")
 	{
 		user := api.Group("/user")
@@ -77,7 +68,6 @@ func main() {
 		}
 	}
 
-	// Запуск сервера
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"

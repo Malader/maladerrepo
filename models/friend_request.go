@@ -1,11 +1,9 @@
-// models/friend_request.go
 package models
 
 import (
 	"time"
 )
 
-// FriendRequestStatus представляет статус запроса дружбы
 type FriendRequestStatus string
 
 const (
@@ -14,7 +12,6 @@ const (
 	Rejected FriendRequestStatus = "rejected"
 )
 
-// FriendRequest представляет запрос дружбы между пользователями
 type FriendRequest struct {
 	ID         string              `json:"id" gorm:"primaryKey;type:uuid;default:uuid_generate_v4()"`
 	FromUser   User                `json:"from_user" gorm:"foreignKey:FromUserID"`
@@ -25,7 +22,6 @@ type FriendRequest struct {
 	CreatedAt  time.Time           `json:"created_at" gorm:"autoCreateTime"`
 }
 
-// SendFriendRequestResponse представляет ответ на отправку запроса дружбы
 type SendFriendRequestResponse struct {
 	Error Error `json:"error"`
 }

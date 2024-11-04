@@ -1,4 +1,3 @@
-// handlers/room.go
 package handlers
 
 import (
@@ -9,14 +8,12 @@ import (
 	"gorm.io/gorm"
 )
 
-// Room представляет игровую комнату
 type Room struct {
 	ID      string        `json:"id" gorm:"primaryKey;type:uuid;default:uuid_generate_v4()"`
 	Name    string        `json:"name" gorm:"uniqueIndex;not null"`
 	Players []models.User `json:"players" gorm:"many2many:room_players;"`
 }
 
-// PlayersInRoomResponse представляет ответ с информацией об игроках в комнате
 type PlayersInRoomResponse struct {
 	RoomID  string        `json:"room_id" example:"room123"`
 	Players []models.User `json:"players"`
@@ -38,7 +35,6 @@ func GetPlayersInRoom(c *gin.Context) {
 	roomID := c.Param("room_id")
 
 	var room Room
-	// Поиск комнаты по ID
 	if err := DB.Preload("Players").Where("id = ?", roomID).First(&room).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			c.JSON(http.StatusNotFound, models.PlayersInRoomResponse{
@@ -52,7 +48,6 @@ func GetPlayersInRoom(c *gin.Context) {
 			return
 		}
 
-		// Внутренняя ошибка
 		c.JSON(http.StatusInternalServerError, models.PlayersInRoomResponse{
 			RoomID:  roomID,
 			Players: nil,
@@ -74,12 +69,10 @@ func GetPlayersInRoom(c *gin.Context) {
 	})
 }
 
-// CreateRoomRequest представляет запрос на создание комнаты
 type CreateRoomRequest struct {
 	Name string `json:"name" binding:"required,max=100" example:"Room One"`
 }
 
-// CreateRoomResponse представляет ответ на создание комнаты
 type CreateRoomResponse struct {
 	Room  Room         `json:"room,omitempty"`
 	Error models.Error `json:"error"`
@@ -109,7 +102,6 @@ func CreateRoomHandler(c *gin.Context) {
 		return
 	}
 
-	// Проверка, существует ли комната с таким именем
 	var existingRoom Room
 	if err := DB.Where("name = ?", req.Name).First(&existingRoom).Error; err == nil {
 		c.JSON(http.StatusBadRequest, CreateRoomResponse{
@@ -121,7 +113,6 @@ func CreateRoomHandler(c *gin.Context) {
 		})
 		return
 	} else if err != gorm.ErrRecordNotFound {
-		// Внутренняя ошибка
 		c.JSON(http.StatusInternalServerError, CreateRoomResponse{
 			Room: Room{},
 			Error: models.Error{
@@ -132,7 +123,6 @@ func CreateRoomHandler(c *gin.Context) {
 		return
 	}
 
-	// Создание новой комнаты
 	room := Room{
 		Name: req.Name,
 	}
@@ -157,12 +147,10 @@ func CreateRoomHandler(c *gin.Context) {
 	})
 }
 
-// AddPlayerToRoomRequest представляет запрос на добавление игрока в комнату
 type AddPlayerToRoomRequest struct {
 	Username string `json:"username" binding:"required,max=25" example:"john_doe"`
 }
 
-// AddPlayerToRoomResponse представляет ответ на добавление игрока в комнату
 type AddPlayerToRoomResponse struct {
 	Room  Room         `json:"room,omitempty"`
 	Error models.Error `json:"error"`
@@ -196,7 +184,6 @@ func AddPlayerToRoomHandler(c *gin.Context) {
 		return
 	}
 
-	// Поиск комнаты
 	var room Room
 	if err := DB.Preload("Players").Where("id = ?", roomID).First(&room).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
@@ -219,7 +206,6 @@ func AddPlayerToRoomHandler(c *gin.Context) {
 		return
 	}
 
-	// Поиск пользователя
 	var user models.User
 	if err := DB.Where("username = ?", req.Username).First(&user).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
@@ -242,7 +228,6 @@ func AddPlayerToRoomHandler(c *gin.Context) {
 		return
 	}
 
-	// Проверка, не находится ли пользователь уже в комнате
 	for _, p := range room.Players {
 		if p.ID == user.ID {
 			c.JSON(http.StatusBadRequest, AddPlayerToRoomResponse{
@@ -256,7 +241,6 @@ func AddPlayerToRoomHandler(c *gin.Context) {
 		}
 	}
 
-	// Добавление игрока в комнату
 	if err := DB.Model(&room).Association("Players").Append(&user); err != nil {
 		c.JSON(http.StatusInternalServerError, AddPlayerToRoomResponse{
 			Room: Room{},
@@ -268,7 +252,6 @@ func AddPlayerToRoomHandler(c *gin.Context) {
 		return
 	}
 
-	// Обновление предварительно загруженных игроков
 	room.Players = append(room.Players, user)
 
 	c.JSON(http.StatusOK, AddPlayerToRoomResponse{

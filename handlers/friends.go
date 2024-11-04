@@ -1,4 +1,3 @@
-// handlers/friends.go
 package handlers
 
 import (
@@ -48,7 +47,7 @@ func GetFriendsHandler(c *gin.Context) {
 		friends = append(friends, models.Friend{
 			Username: f.Username,
 			Image:    f.Image,
-			Status:   "active", // Здесь может быть логика для определения статуса
+			Status:   "active", // Здесь должная быть логика для определения статуса!!!
 		})
 	}
 

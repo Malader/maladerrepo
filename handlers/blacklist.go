@@ -1,4 +1,3 @@
-// handlers/blacklist.go
 package handlers
 
 import (
@@ -25,7 +24,6 @@ func AddToBlacklistHandler(c *gin.Context) {
 	userID := c.Param("id")
 	targetUsername := c.Param("username")
 
-	// Найти пользователя, который добавляет в черный список
 	var user models.User
 	if err := DB.Where("id = ?", userID).First(&user).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
@@ -46,7 +44,6 @@ func AddToBlacklistHandler(c *gin.Context) {
 		return
 	}
 
-	// Найти целевого пользователя по username
 	var target models.User
 	if err := DB.Where("username = ?", targetUsername).First(&target).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
@@ -67,7 +64,6 @@ func AddToBlacklistHandler(c *gin.Context) {
 		return
 	}
 
-	// Проверить, не пытается ли пользователь добавить самого себя
 	if user.ID == target.ID {
 		c.JSON(http.StatusBadRequest, models.AddBlacklistResponse{
 			Error: models.Error{
@@ -78,29 +74,28 @@ func AddToBlacklistHandler(c *gin.Context) {
 		return
 	}
 
-	// Проверить, не находится ли целевой пользователь уже в черном списке
-	has, err := DB.Model(&user).Association("BlacklistedUsers").Has(&target)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, models.AddBlacklistResponse{
-			Error: models.Error{
-				ErrorCode:        999,
-				ErrorDescription: "Внутренняя ошибка",
-			},
-		})
-		return
-	}
+	// Нужно пофиксить
+	//has, err := DB.Model(&user).Association("BlacklistedUsers").Has(&target)
+	//if err != nil {
+	//	c.JSON(http.StatusInternalServerError, models.AddBlacklistResponse{
+	//		Error: models.Error{
+	//			ErrorCode:        999,
+	//			ErrorDescription: "Внутренняя ошибка",
+	//		},
+	//	})
+	//	return
+	//}
+	//
+	//if has {
+	//	c.JSON(http.StatusBadRequest, models.AddBlacklistResponse{
+	//		Error: models.Error{
+	//			ErrorCode:        999,
+	//			ErrorDescription: "Пользователь уже находится в черном списке",
+	//		},
+	//	})
+	//	return
+	//}
 
-	if has {
-		c.JSON(http.StatusBadRequest, models.AddBlacklistResponse{
-			Error: models.Error{
-				ErrorCode:        999,
-				ErrorDescription: "Пользователь уже находится в черном списке",
-			},
-		})
-		return
-	}
-
-	// Добавить пользователя в черный список
 	if err := DB.Model(&user).Association("BlacklistedUsers").Append(&target); err != nil {
 		c.JSON(http.StatusInternalServerError, models.AddBlacklistResponse{
 			Error: models.Error{
@@ -111,7 +106,6 @@ func AddToBlacklistHandler(c *gin.Context) {
 		return
 	}
 
-	// Успешно добавлено
 	c.JSON(http.StatusOK, models.AddBlacklistResponse{
 		Error: models.Error{
 			ErrorCode:        0,

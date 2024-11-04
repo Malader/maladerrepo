@@ -1,4 +1,3 @@
-// handlers/profile.go
 package handlers
 
 import (
@@ -58,7 +57,6 @@ func UpdateProfileHandler(c *gin.Context) {
 		return
 	}
 
-	// Обновление username, если указано
 	if req.Username != "" && req.Username != user.Username {
 		var existingUser models.User
 		if err := DB.Where("username = ?", req.Username).First(&existingUser).Error; err == nil {
@@ -81,7 +79,6 @@ func UpdateProfileHandler(c *gin.Context) {
 		user.Username = req.Username
 	}
 
-	// Обновление пароля, если указано
 	if req.Password != "" {
 		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 		if err != nil {
@@ -96,7 +93,6 @@ func UpdateProfileHandler(c *gin.Context) {
 		user.PasswordHash = string(hashedPassword)
 	}
 
-	// Обновление изображения, если указано
 	if req.Image != "" {
 		decodedImage, err := base64.StdEncoding.DecodeString(req.Image)
 		if err != nil {
@@ -108,7 +104,7 @@ func UpdateProfileHandler(c *gin.Context) {
 			})
 			return
 		}
-		if len(decodedImage) > 10*1024*1024 { // Пример: лимит 10MB
+		if len(decodedImage) > 10*1024*1024 { // лимит на 10MB
 			c.JSON(http.StatusUnprocessableEntity, models.UpdateProfileResponse{
 				Error: models.Error{
 					ErrorCode:        4,
@@ -120,7 +116,6 @@ func UpdateProfileHandler(c *gin.Context) {
 		user.Image = req.Image
 	}
 
-	// Сохранение изменений
 	if err := DB.Save(&user).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, models.UpdateProfileResponse{
 			Error: models.Error{
@@ -174,18 +169,12 @@ func GetProfileHandler(c *gin.Context) {
 		return
 	}
 
-	// Предполагается, что RegistrationDate и LastActivityDate существуют в модели User
-	// Если их нет, добавьте соответствующие поля в models.User
-	// Пример:
-	// RegistrationDate  time.Time `json:"registrationDate"`
-	// LastActivityDate  time.Time `json:"lastActivityDate"`
-
 	c.JSON(http.StatusOK, models.GetProfileResponse{
 		Email:            user.Email,
 		Username:         user.Username,
 		Password:         user.PasswordHash,
-		RegistrationDate: user.CreatedAt.Time, // Или используйте соответствующее поле
-		LastActivityDate: time.Now(),          // Замените на реальное поле, если есть
+		RegistrationDate: user.CreatedAt.Time,
+		LastActivityDate: time.Now(),
 		Image:            user.Image,
 		Error: models.Error{
 			ErrorCode:        0,

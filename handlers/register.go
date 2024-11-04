@@ -1,4 +1,3 @@
-// handlers/register.go
 package handlers
 
 import (
@@ -33,7 +32,6 @@ func RegisterUser(c *gin.Context) {
 		return
 	}
 
-	// Проверка формата username
 	if len(req.Username) > 25 || len(req.Username) == 0 {
 		c.JSON(http.StatusUnprocessableEntity, models.RegisterResponse{
 			Error: models.Error{
@@ -44,7 +42,6 @@ func RegisterUser(c *gin.Context) {
 		return
 	}
 
-	// Проверка формата password
 	if len(req.Password) != 64 {
 		c.JSON(http.StatusUnprocessableEntity, models.RegisterResponse{
 			Error: models.Error{
@@ -55,7 +52,6 @@ func RegisterUser(c *gin.Context) {
 		return
 	}
 
-	// Проверка, существует ли пользователь с таким же username или email
 	var existingUser models.User
 	if err := DB.Where("username = ?", req.Username).Or("email = ?", req.Email).First(&existingUser).Error; err == nil {
 		if existingUser.Username == req.Username {
@@ -78,7 +74,6 @@ func RegisterUser(c *gin.Context) {
 		}
 	}
 
-	// Хэширование пароля
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, models.RegisterResponse{
@@ -90,7 +85,6 @@ func RegisterUser(c *gin.Context) {
 		return
 	}
 
-	// Создание нового пользователя
 	user := models.User{
 		Username:     req.Username,
 		Email:        req.Email,

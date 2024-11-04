@@ -43,6 +43,11 @@ definitions:
           $ref: '#/definitions/models.User'
         type: array
     type: object
+  models.AddBlacklistResponse:
+    properties:
+      error:
+        $ref: '#/definitions/models.Error'
+    type: object
   models.AuthorizeRequest:
     properties:
       password:
@@ -63,11 +68,80 @@ definitions:
       token:
         type: string
     type: object
+  models.ChangePasswordRequest:
+    properties:
+      newPassword:
+        example: newSecurePassword123
+        maxLength: 64
+        minLength: 8
+        type: string
+    required:
+    - newPassword
+    type: object
+  models.ChangePasswordResponse:
+    properties:
+      error:
+        $ref: '#/definitions/models.Error'
+    type: object
+  models.ConfirmFriendRequestResponse:
+    properties:
+      error:
+        $ref: '#/definitions/models.Error'
+    type: object
+  models.DeleteFriendResponse:
+    properties:
+      error:
+        $ref: '#/definitions/models.Error'
+    type: object
   models.Error:
     properties:
       errorCode:
         type: integer
       errorDescription:
+        type: string
+    type: object
+  models.Friend:
+    properties:
+      image:
+        example: 4AAQSkZJRgABAQEAAAAAAADfjadFHADHda
+        type: string
+      status:
+        example: active
+        type: string
+      username:
+        example: VasyaPupkin
+        type: string
+    type: object
+  models.GetFriendsResponse:
+    properties:
+      error:
+        $ref: '#/definitions/models.Error'
+      friends:
+        items:
+          $ref: '#/definitions/models.Friend'
+        type: array
+    type: object
+  models.GetProfileResponse:
+    properties:
+      email:
+        example: example@example.com
+        type: string
+      error:
+        $ref: '#/definitions/models.Error'
+      image:
+        example: 4AAQSkZJRgABAQEAAAAAAADfjadFHADHda
+        type: string
+      lastActivityDate:
+        example: "2024-05-22T12:34:56Z"
+        type: string
+      password:
+        example: hashedPassword123
+        type: string
+      registrationDate:
+        example: "2024-01-01T00:00:00Z"
+        type: string
+      username:
+        example: ExampleUser
         type: string
     type: object
   models.PlayersInRoomResponse:
@@ -81,6 +155,20 @@ definitions:
       room_id:
         example: room123
         type: string
+    type: object
+  models.RecoveryRequest:
+    properties:
+      email:
+        example: v.pupkin@g.nsu.ru
+        maxLength: 256
+        type: string
+    required:
+    - email
+    type: object
+  models.RecoveryResponse:
+    properties:
+      error:
+        $ref: '#/definitions/models.Error'
     type: object
   models.RegisterRequest:
     properties:
@@ -105,11 +193,40 @@ definitions:
       error:
         $ref: '#/definitions/models.Error'
     type: object
+  models.SendFriendRequestResponse:
+    properties:
+      error:
+        $ref: '#/definitions/models.Error'
+    type: object
+  models.UpdateProfileRequest:
+    properties:
+      image:
+        example: TWFuIGlzIGRpc3Rpbmd1aXNoZWQsIG5vdCBvbmx5IGJ5IGhpcyByZWFzb24sIGJ1dCAuLi4=
+        type: string
+      password:
+        example: 6a4a61f57bccf059abb82fc95589ebc428629326ab965390f25224e262455beb
+        type: string
+      username:
+        example: vasyaPupkin
+        maxLength: 25
+        type: string
+    type: object
+  models.UpdateProfileResponse:
+    properties:
+      error:
+        $ref: '#/definitions/models.Error'
+    type: object
   models.User:
     properties:
       email:
         type: string
       id:
+        type: string
+      image:
+        type: string
+      lastActivityDate:
+        type: string
+      registrationDate:
         type: string
       team:
         type: string
@@ -221,6 +338,250 @@ paths:
       summary: Создание новой игровой комнаты
       tags:
       - room
+  /user/{id}/blackList/{username}:
+    put:
+      consumes:
+      - application/json
+      description: Позволяет добавить пользователя в черный список
+      parameters:
+      - description: Идентификатор пользователя, добавляющего в черный список
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Имя пользователя, добавляемого в черный список
+        in: path
+        name: username
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.AddBlacklistResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.AddBlacklistResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.AddBlacklistResponse'
+      summary: Добавление в черный список
+      tags:
+      - user
+  /user/{id}/friends:
+    get:
+      consumes:
+      - application/json
+      description: Позволяет получить список друзей пользователя
+      parameters:
+      - description: Идентификатор пользователя
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.GetFriendsResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.GetFriendsResponse'
+        "504":
+          description: Gateway Timeout
+          schema:
+            $ref: '#/definitions/models.GetFriendsResponse'
+      summary: Получение списка друзей
+      tags:
+      - user
+  /user/{id}/friends/{username}:
+    delete:
+      consumes:
+      - application/json
+      description: Позволяет удалить из друзей пользователя
+      parameters:
+      - description: Идентификатор пользователя, удаляющего друга
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Имя пользователя, удаляемого из списка друзей
+        in: path
+        name: username
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.DeleteFriendResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.DeleteFriendResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.DeleteFriendResponse'
+      summary: Удаление из друзей
+      tags:
+      - user
+    post:
+      consumes:
+      - application/json
+      description: Позволяет отправить запрос дружбы от одного пользователя другому
+      parameters:
+      - description: Идентификатор пользователя, отправляющего запрос дружбы
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Имя пользователя, получающего запрос дружбы
+        in: path
+        name: username
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.SendFriendRequestResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.SendFriendRequestResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.SendFriendRequestResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.SendFriendRequestResponse'
+      summary: Отправление запроса дружбы
+      tags:
+      - user
+  /user/{id}/friends/{username}/{confirmation}:
+    put:
+      consumes:
+      - application/json
+      description: Позволяет ответить на запрос дружбы от одного пользователя другому
+      parameters:
+      - description: Идентификатор пользователя, принимающего запрос дружбы
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Имя пользователя, отправившего запрос дружбы
+        in: path
+        name: username
+        required: true
+        type: string
+      - description: Подтверждение запроса дружбы (YES или NO)
+        in: path
+        name: confirmation
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ConfirmFriendRequestResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ConfirmFriendRequestResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.ConfirmFriendRequestResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ConfirmFriendRequestResponse'
+      summary: Подтверждение/отклонение запроса дружбы
+      tags:
+      - user
+  /user/{id}/profile:
+    get:
+      consumes:
+      - application/json
+      description: Позволяет получить информацию о пользователе
+      parameters:
+      - description: Идентификатор профиля
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.GetProfileResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.GetProfileResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.GetProfileResponse'
+        "504":
+          description: Gateway Timeout
+          schema:
+            $ref: '#/definitions/models.GetProfileResponse'
+      summary: Получение информации профиля
+      tags:
+      - user
+    patch:
+      consumes:
+      - application/json
+      description: Позволяет изменить информацию о пользователе
+      parameters:
+      - description: Идентификатор профиля
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Информация профиля
+        in: body
+        name: profile
+        required: true
+        schema:
+          $ref: '#/definitions/models.UpdateProfileRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.UpdateProfileResponse'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/models.UpdateProfileResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.UpdateProfileResponse'
+      summary: Изменение информации профиля
+      tags:
+      - user
   /user/authorize:
     post:
       consumes:
@@ -251,6 +612,79 @@ paths:
       summary: Авторизация пользователя
       tags:
       - user
+  /user/recovery:
+    post:
+      consumes:
+      - application/json
+      description: Позволяет начать процесс восстановления пароля через email
+      parameters:
+      - description: Email пользователя
+        in: body
+        name: recovery
+        required: true
+        schema:
+          $ref: '#/definitions/models.RecoveryRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.RecoveryResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.RecoveryResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.RecoveryResponse'
+      summary: Инициация восстановления пароля
+      tags:
+      - recovery
+  /user/recovery/{recoverySuffix}:
+    patch:
+      consumes:
+      - application/json
+      description: Позволяет завершить процесс восстановления пароля по ссылке
+      parameters:
+      - description: Уникальный суффикс восстановления
+        in: path
+        name: recoverySuffix
+        required: true
+        type: string
+      - description: Новый пароль
+        in: body
+        name: recovery
+        required: true
+        schema:
+          $ref: '#/definitions/models.ChangePasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.ChangePasswordResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ChangePasswordResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.ChangePasswordResponse'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/models.ChangePasswordResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ChangePasswordResponse'
+      summary: Завершение восстановления пароля
+      tags:
+      - recovery
   /user/register:
     post:
       consumes:
