@@ -1,34 +1,36 @@
+// models/models.go
 package models
 
-import "gorm.io/gorm"
+import (
+	"gorm.io/gorm"
+	"time"
+)
 
 // User представляет пользователя системы
 type User struct {
-	ID           string         `json:"id" gorm:"primaryKey;type:uuid;default:uuid_generate_v4()"`
-	Username     string         `json:"username" gorm:"uniqueIndex;not null"`
-	Email        string         `json:"email" gorm:"uniqueIndex;not null"`
-	PasswordHash string         `json:"-" gorm:"not null"`
-	Team         string         `json:"team"`
-	CreatedAt    gorm.DeletedAt `json:"-"`
+	ID               string         `json:"id" gorm:"primaryKey;type:uuid;default:uuid_generate_v4()"`
+	Username         string         `json:"username" gorm:"uniqueIndex;not null"`
+	Email            string         `json:"email" gorm:"uniqueIndex;not null"`
+	PasswordHash     string         `json:"-" gorm:"not null"`
+	Team             string         `json:"team"`
+	Image            string         `json:"image" gorm:"type:text"`
+	RegistrationDate time.Time      `json:"registrationDate" gorm:"autoCreateTime"`
+	LastActivityDate time.Time      `json:"lastActivityDate" gorm:"autoUpdateTime"`
+	CreatedAt        gorm.DeletedAt `json:"-"`
+	Friends          []User         `json:"-" gorm:"many2many:user_friends;"`
+	BlacklistedUsers []User         `json:"-" gorm:"many2many:user_blacklists;"`
 }
 
-// VerifyCredentialsRequest представляет запрос на проверку учетных данных
-type VerifyCredentialsRequest struct {
-	Username string `json:"username" binding:"required" example:"john_doe"`
-	Password string `json:"password" binding:"required" example:"securepassword"`
-}
-
-// VerifyCredentialsResponse представляет ответ на проверку учетных данных
-type VerifyCredentialsResponse struct {
-	Valid bool   `json:"valid" example:"true"`
-	User  User   `json:"user,omitempty"`
-	Token string `json:"token,omitempty"`
-	Error string `json:"error,omitempty"`
+// Room представляет игровую комнату
+type Room struct {
+	ID      string `json:"id" gorm:"primaryKey;type:uuid;default:uuid_generate_v4()"`
+	Name    string `json:"name" gorm:"uniqueIndex;not null"`
+	Players []User `json:"players" gorm:"many2many:room_players;"`
 }
 
 // PlayersInRoomResponse представляет ответ с информацией об игроках в комнате
 type PlayersInRoomResponse struct {
 	RoomID  string `json:"room_id" example:"room123"`
 	Players []User `json:"players"`
-	Error   string `json:"error,omitempty"`
+	Error   Error  `json:"error,omitempty"`
 }

@@ -1,9 +1,79 @@
 basePath: /api
 definitions:
+  handlers.AddPlayerToRoomRequest:
+    properties:
+      username:
+        example: john_doe
+        maxLength: 25
+        type: string
+    required:
+    - username
+    type: object
+  handlers.AddPlayerToRoomResponse:
+    properties:
+      error:
+        $ref: '#/definitions/models.Error'
+      room:
+        $ref: '#/definitions/handlers.Room'
+    type: object
+  handlers.CreateRoomRequest:
+    properties:
+      name:
+        example: Room One
+        maxLength: 100
+        type: string
+    required:
+    - name
+    type: object
+  handlers.CreateRoomResponse:
+    properties:
+      error:
+        $ref: '#/definitions/models.Error'
+      room:
+        $ref: '#/definitions/handlers.Room'
+    type: object
+  handlers.Room:
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      players:
+        items:
+          $ref: '#/definitions/models.User'
+        type: array
+    type: object
+  models.AuthorizeRequest:
+    properties:
+      password:
+        example: 6a4a61f57bccf059abb82fc95589ebc428629326ab965390f25224e262455beb
+        type: string
+      username:
+        example: vasyaPupkin
+        maxLength: 25
+        type: string
+    required:
+    - password
+    - username
+    type: object
+  models.AuthorizeResponse:
+    properties:
+      error:
+        $ref: '#/definitions/models.Error'
+      token:
+        type: string
+    type: object
+  models.Error:
+    properties:
+      errorCode:
+        type: integer
+      errorDescription:
+        type: string
+    type: object
   models.PlayersInRoomResponse:
     properties:
       error:
-        type: string
+        $ref: '#/definitions/models.Error'
       players:
         items:
           $ref: '#/definitions/models.User'
@@ -12,42 +82,39 @@ definitions:
         example: room123
         type: string
     type: object
-  models.User:
+  models.RegisterRequest:
     properties:
       email:
-        example: john.doe@example.com
+        example: v.pupkin@g.nsu.ru
+        maxLength: 256
         type: string
-      id:
-        example: 123e4567-e89b-12d3-a456-426614174000
-        type: string
-      team:
-        example: Red
-        type: string
-      username:
-        example: john_doe
-        type: string
-    type: object
-  models.VerifyCredentialsRequest:
-    properties:
       password:
-        example: securepassword
+        example: 6a4a61f57bccf059abb82fc95589ebc428629326ab965390f25224e262455beb
         type: string
       username:
-        example: john_doe
+        example: vasyaPupkin
+        maxLength: 25
         type: string
     required:
+    - email
     - password
     - username
     type: object
-  models.VerifyCredentialsResponse:
+  models.RegisterResponse:
     properties:
       error:
+        $ref: '#/definitions/models.Error'
+    type: object
+  models.User:
+    properties:
+      email:
         type: string
-      user:
-        $ref: '#/definitions/models.User'
-      valid:
-        example: true
-        type: boolean
+      id:
+        type: string
+      team:
+        type: string
+      username:
+        type: string
     type: object
 host: localhost:8080
 info:
@@ -57,32 +124,6 @@ info:
   title: User Service API
   version: "1.0"
 paths:
-  /auth/verify:
-    post:
-      consumes:
-      - application/json
-      description: Проверяет правильность введенных данных пользователя
-      parameters:
-      - description: Учетные данные
-        in: body
-        name: credentials
-        required: true
-        schema:
-          $ref: '#/definitions/models.VerifyCredentialsRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/models.VerifyCredentialsResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/models.VerifyCredentialsResponse'
-      summary: Проверка учетных данных пользователя
-      tags:
-      - auth
   /rooms/{room_id}/players:
     get:
       consumes:
@@ -105,7 +146,143 @@ paths:
           description: Not Found
           schema:
             $ref: '#/definitions/models.PlayersInRoomResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.PlayersInRoomResponse'
       summary: Получение информации об игроках в комнате
       tags:
       - room
+    post:
+      consumes:
+      - application/json
+      description: Добавляет пользователя в указанную игровую комнату
+      parameters:
+      - description: Идентификатор комнаты
+        in: path
+        name: room_id
+        required: true
+        type: string
+      - description: Информация об игроке
+        in: body
+        name: player
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.AddPlayerToRoomRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.AddPlayerToRoomResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.AddPlayerToRoomResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.AddPlayerToRoomResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.AddPlayerToRoomResponse'
+      summary: Добавление игрока в комнату
+      tags:
+      - room
+  /rooms/create:
+    post:
+      consumes:
+      - application/json
+      description: Создает новую игровую комнату с заданным именем
+      parameters:
+      - description: Информация о комнате
+        in: body
+        name: room
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.CreateRoomRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/handlers.CreateRoomResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.CreateRoomResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.CreateRoomResponse'
+      summary: Создание новой игровой комнаты
+      tags:
+      - room
+  /user/authorize:
+    post:
+      consumes:
+      - application/json
+      description: Позволяет авторизовать пользователя в системе
+      parameters:
+      - description: Учетные данные пользователя
+        in: body
+        name: credentials
+        required: true
+        schema:
+          $ref: '#/definitions/models.AuthorizeRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.AuthorizeResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.AuthorizeResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.AuthorizeResponse'
+      summary: Авторизация пользователя
+      tags:
+      - user
+  /user/register:
+    post:
+      consumes:
+      - application/json
+      description: Позволяет зарегистрировать пользователя в системе
+      parameters:
+      - description: Данные пользователя для регистрации
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/models.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.RegisterResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.RegisterResponse'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/models.RegisterResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.RegisterResponse'
+      summary: Регистрация нового пользователя
+      tags:
+      - user
 swagger: "2.0"

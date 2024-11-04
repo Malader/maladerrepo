@@ -1,12 +1,13 @@
+// main.go
 package main
 
 import (
-	"github.com/Malader/maladerrepo/models"
 	"log"
 	"os"
 
 	"github.com/Malader/maladerrepo/docs"
 	"github.com/Malader/maladerrepo/handlers"
+	"github.com/Malader/maladerrepo/models"
 	"github.com/gin-gonic/gin"
 
 	swaggerFiles "github.com/swaggo/files"
@@ -34,13 +35,13 @@ func main() {
 	dsn := "host=localhost user=postgres password=yourpassword dbname=userdb port=5432 sslmode=disable TimeZone=Asia/Shanghai"
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
-		log.Fatalf("failed to connect to database: %v", err)
+		log.Fatalf("Не удалось подключиться к базе данных: %v", err)
 	}
 
 	// Автоматическая миграция моделей
-	err = db.AutoMigrate(&models.User{})
+	err = db.AutoMigrate(&models.User{}, &models.Room{}, &models.FriendRequest{})
 	if err != nil {
-		log.Fatalf("failed to migrate database: %v", err)
+		log.Fatalf("Не удалось мигрировать базу данных: %v", err)
 	}
 
 	// Инициализация базы данных в обработчиках
@@ -53,15 +54,26 @@ func main() {
 	// Группы маршрутов
 	api := router.Group("/api")
 	{
-		auth := api.Group("/auth")
+		user := api.Group("/user")
 		{
-			auth.POST("/verify", handlers.VerifyCredentials)
-			auth.POST("/create", handlers.CreateUserHandler) // Временный эндпоинт для создания пользователей
+			user.POST("/register", handlers.RegisterUser)
+			user.POST("/authorize", handlers.AuthorizeUser)
+			user.POST("/recovery", handlers.RecoveryPhase1)
+			user.PATCH("/recovery/:recoverySuffix", handlers.RecoveryPhase2)
+			user.PATCH("/:id/profile", handlers.UpdateProfileHandler)
+			user.GET("/:id/profile", handlers.GetProfileHandler)
+			user.GET("/:id/friends", handlers.GetFriendsHandler)
+			user.POST("/:id/friends/:username", handlers.SendFriendRequestHandler)
+			user.PUT("/:id/friends/:username/:confirmation", handlers.ConfirmFriendRequestHandler)
+			user.DELETE("/:id/friends/:username", handlers.DeleteFriendHandler)
+			user.PUT("/:id/blackList/:username", handlers.AddToBlacklistHandler)
 		}
 
 		rooms := api.Group("/rooms")
 		{
 			rooms.GET("/:room_id/players", handlers.GetPlayersInRoom)
+			rooms.POST("/create", handlers.CreateRoomHandler)
+			rooms.POST("/:room_id/players", handlers.AddPlayerToRoomHandler)
 		}
 	}
 
@@ -71,6 +83,6 @@ func main() {
 		port = "8080"
 	}
 	if err := router.Run(":" + port); err != nil {
-		log.Fatalf("failed to run server: %v", err)
+		log.Fatalf("Не удалось запустить сервер: %v", err)
 	}
 }

@@ -9,9 +9,9 @@
     "host": "localhost:8080",
     "basePath": "/api",
     "paths": {
-        "/auth/verify": {
+        "/rooms/create": {
             "post": {
-                "description": "Проверяет правильность введенных данных пользователя",
+                "description": "Создает новую игровую комнату с заданным именем",
                 "consumes": [
                     "application/json"
                 ],
@@ -19,31 +19,37 @@
                     "application/json"
                 ],
                 "tags": [
-                    "auth"
+                    "room"
                 ],
-                "summary": "Проверка учетных данных пользователя",
+                "summary": "Создание новой игровой комнаты",
                 "parameters": [
                     {
-                        "description": "Учетные данные",
-                        "name": "credentials",
+                        "description": "Информация о комнате",
+                        "name": "room",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.VerifyCredentialsRequest"
+                            "$ref": "#/definitions/handlers.CreateRoomRequest"
                         }
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "OK",
+                    "201": {
+                        "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/models.VerifyCredentialsResponse"
+                            "$ref": "#/definitions/handlers.CreateRoomResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/models.VerifyCredentialsResponse"
+                            "$ref": "#/definitions/handlers.CreateRoomResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.CreateRoomResponse"
                         }
                     }
                 }
@@ -83,17 +89,283 @@
                         "schema": {
                             "$ref": "#/definitions/models.PlayersInRoomResponse"
                         }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.PlayersInRoomResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Добавляет пользователя в указанную игровую комнату",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "room"
+                ],
+                "summary": "Добавление игрока в комнату",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Идентификатор комнаты",
+                        "name": "room_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Информация об игроке",
+                        "name": "player",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.AddPlayerToRoomRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.AddPlayerToRoomResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.AddPlayerToRoomResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.AddPlayerToRoomResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.AddPlayerToRoomResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/authorize": {
+            "post": {
+                "description": "Позволяет авторизовать пользователя в системе",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user"
+                ],
+                "summary": "Авторизация пользователя",
+                "parameters": [
+                    {
+                        "description": "Учетные данные пользователя",
+                        "name": "credentials",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.AuthorizeRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/models.AuthorizeResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.AuthorizeResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.AuthorizeResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/register": {
+            "post": {
+                "description": "Позволяет зарегистрировать пользователя в системе",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user"
+                ],
+                "summary": "Регистрация нового пользователя",
+                "parameters": [
+                    {
+                        "description": "Данные пользователя для регистрации",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.RegisterRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/models.RegisterResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.RegisterResponse"
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity",
+                        "schema": {
+                            "$ref": "#/definitions/models.RegisterResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.RegisterResponse"
+                        }
                     }
                 }
             }
         }
     },
     "definitions": {
+        "handlers.AddPlayerToRoomRequest": {
+            "type": "object",
+            "required": [
+                "username"
+            ],
+            "properties": {
+                "username": {
+                    "type": "string",
+                    "maxLength": 25,
+                    "example": "john_doe"
+                }
+            }
+        },
+        "handlers.AddPlayerToRoomResponse": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "$ref": "#/definitions/models.Error"
+                },
+                "room": {
+                    "$ref": "#/definitions/handlers.Room"
+                }
+            }
+        },
+        "handlers.CreateRoomRequest": {
+            "type": "object",
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "maxLength": 100,
+                    "example": "Room One"
+                }
+            }
+        },
+        "handlers.CreateRoomResponse": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "$ref": "#/definitions/models.Error"
+                },
+                "room": {
+                    "$ref": "#/definitions/handlers.Room"
+                }
+            }
+        },
+        "handlers.Room": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "players": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.User"
+                    }
+                }
+            }
+        },
+        "models.AuthorizeRequest": {
+            "type": "object",
+            "required": [
+                "password",
+                "username"
+            ],
+            "properties": {
+                "password": {
+                    "type": "string",
+                    "example": "6a4a61f57bccf059abb82fc95589ebc428629326ab965390f25224e262455beb"
+                },
+                "username": {
+                    "type": "string",
+                    "maxLength": 25,
+                    "example": "vasyaPupkin"
+                }
+            }
+        },
+        "models.AuthorizeResponse": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "$ref": "#/definitions/models.Error"
+                },
+                "token": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.Error": {
+            "type": "object",
+            "properties": {
+                "errorCode": {
+                    "type": "integer"
+                },
+                "errorDescription": {
+                    "type": "string"
+                }
+            }
+        },
         "models.PlayersInRoomResponse": {
             "type": "object",
             "properties": {
                 "error": {
-                    "type": "string"
+                    "$ref": "#/definitions/models.Error"
                 },
                 "players": {
                     "type": "array",
@@ -107,56 +379,52 @@
                 }
             }
         },
-        "models.User": {
-            "type": "object",
-            "properties": {
-                "email": {
-                    "type": "string",
-                    "example": "john.doe@example.com"
-                },
-                "id": {
-                    "type": "string",
-                    "example": "123e4567-e89b-12d3-a456-426614174000"
-                },
-                "team": {
-                    "type": "string",
-                    "example": "Red"
-                },
-                "username": {
-                    "type": "string",
-                    "example": "john_doe"
-                }
-            }
-        },
-        "models.VerifyCredentialsRequest": {
+        "models.RegisterRequest": {
             "type": "object",
             "required": [
+                "email",
                 "password",
                 "username"
             ],
             "properties": {
+                "email": {
+                    "type": "string",
+                    "maxLength": 256,
+                    "example": "v.pupkin@g.nsu.ru"
+                },
                 "password": {
                     "type": "string",
-                    "example": "securepassword"
+                    "example": "6a4a61f57bccf059abb82fc95589ebc428629326ab965390f25224e262455beb"
                 },
                 "username": {
                     "type": "string",
-                    "example": "john_doe"
+                    "maxLength": 25,
+                    "example": "vasyaPupkin"
                 }
             }
         },
-        "models.VerifyCredentialsResponse": {
+        "models.RegisterResponse": {
             "type": "object",
             "properties": {
                 "error": {
+                    "$ref": "#/definitions/models.Error"
+                }
+            }
+        },
+        "models.User": {
+            "type": "object",
+            "properties": {
+                "email": {
                     "type": "string"
                 },
-                "user": {
-                    "$ref": "#/definitions/models.User"
+                "id": {
+                    "type": "string"
                 },
-                "valid": {
-                    "type": "boolean",
-                    "example": true
+                "team": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
                 }
             }
         }
