@@ -48,10 +48,43 @@ definitions:
       error:
         $ref: '#/definitions/models.Error'
     type: object
+  models.AddGameSearchRequest:
+    properties:
+      metathemes:
+        items:
+          type: string
+        type: array
+    required:
+    - metathemes
+    type: object
+  models.AddGameSearchResponse:
+    properties:
+      error:
+        $ref: '#/definitions/models.Error'
+    type: object
+  models.AddSpectatorResponse:
+    properties:
+      error:
+        $ref: '#/definitions/models.Error'
+    type: object
+  models.AddThemeRequest:
+    properties:
+      theme:
+        $ref: '#/definitions/models.Theme'
+    required:
+    - theme
+    type: object
+  models.AddThemeResponse:
+    properties:
+      error:
+        $ref: '#/definitions/models.Error'
+    type: object
   models.AuthorizeRequest:
     properties:
       password:
-        example: 6a4a61f57bccf059abb82fc95589ebc428629326ab965390f25224e262455beb
+        example: securePassword123
+        maxLength: 64
+        minLength: 8
         type: string
       username:
         example: vasyaPupkin
@@ -68,22 +101,23 @@ definitions:
       token:
         type: string
     type: object
-  models.ChangePasswordRequest:
-    properties:
-      newPassword:
-        example: newSecurePassword123
-        maxLength: 64
-        minLength: 8
-        type: string
-    required:
-    - newPassword
-    type: object
-  models.ChangePasswordResponse:
+  models.ConfirmFriendRequestResponse:
     properties:
       error:
         $ref: '#/definitions/models.Error'
     type: object
-  models.ConfirmFriendRequestResponse:
+  models.ConfirmThemeRequest:
+    properties:
+      metathemes:
+        items:
+          type: string
+        type: array
+      theme:
+        $ref: '#/definitions/models.Theme'
+    required:
+    - theme
+    type: object
+  models.ConfirmThemeResponse:
     properties:
       error:
         $ref: '#/definitions/models.Error'
@@ -110,6 +144,25 @@ definitions:
         type: string
       username:
         example: VasyaPupkin
+        type: string
+    type: object
+  models.GameSearch:
+    properties:
+      id:
+        type: string
+      metathemes:
+        items:
+          $ref: '#/definitions/models.Theme'
+        type: array
+      spectators:
+        description: Добавленное поле для зрителей
+        items:
+          $ref: '#/definitions/models.User'
+        type: array
+      status:
+        description: '"searching", "found", "stopped"'
+        type: string
+      user_id:
         type: string
     type: object
   models.GetFriendsResponse:
@@ -156,6 +209,48 @@ definitions:
         example: room123
         type: string
     type: object
+  models.RecoveryBadRequestError:
+    properties:
+      errorCode:
+        example: 1
+        type: integer
+      errorDescription:
+        example: Аккаунт с указанным Email не существует
+        type: string
+    type: object
+  models.RecoveryBadRequestResponse:
+    properties:
+      error:
+        $ref: '#/definitions/models.RecoveryBadRequestError'
+    type: object
+  models.RecoveryInternalServerError:
+    properties:
+      errorCode:
+        example: 999
+        type: integer
+      errorDescription:
+        example: Внутренняя ошибка
+        type: string
+    type: object
+  models.RecoveryInternalServerErrorResponse:
+    properties:
+      error:
+        $ref: '#/definitions/models.RecoveryInternalServerError'
+    type: object
+  models.RecoveryNotFoundError:
+    properties:
+      errorCode:
+        example: 1
+        type: integer
+      errorDescription:
+        example: Уникальный суффикс восстановления не найден
+        type: string
+    type: object
+  models.RecoveryNotFoundResponse:
+    properties:
+      error:
+        $ref: '#/definitions/models.RecoveryNotFoundError'
+    type: object
   models.RecoveryRequest:
     properties:
       email:
@@ -165,10 +260,33 @@ definitions:
     required:
     - email
     type: object
-  models.RecoveryResponse:
+  models.RecoverySuccessError:
+    properties:
+      errorCode:
+        example: 0
+        type: integer
+      errorDescription:
+        example: ""
+        type: string
+    type: object
+  models.RecoverySuccessResponse:
     properties:
       error:
-        $ref: '#/definitions/models.Error'
+        $ref: '#/definitions/models.RecoverySuccessError'
+    type: object
+  models.RecoveryUnprocessableEntityError:
+    properties:
+      errorCode:
+        example: 2
+        type: integer
+      errorDescription:
+        example: Время действия ссылки истекло, повторите процедуру
+        type: string
+    type: object
+  models.RecoveryUnprocessableEntityResponse:
+    properties:
+      error:
+        $ref: '#/definitions/models.RecoveryUnprocessableEntityError'
     type: object
   models.RegisterRequest:
     properties:
@@ -177,7 +295,9 @@ definitions:
         maxLength: 256
         type: string
       password:
-        example: 6a4a61f57bccf059abb82fc95589ebc428629326ab965390f25224e262455beb
+        example: securePassword123
+        maxLength: 64
+        minLength: 8
         type: string
       username:
         example: vasyaPupkin
@@ -198,13 +318,54 @@ definitions:
       error:
         $ref: '#/definitions/models.Error'
     type: object
+  models.StopGameSearchResponse:
+    properties:
+      error:
+        $ref: '#/definitions/models.Error'
+    type: object
+  models.Theme:
+    properties:
+      category:
+        allOf:
+        - $ref: '#/definitions/models.ThemeCategory'
+        enum:
+        - THEME
+        - METATHEME
+      game_searches:
+        items:
+          $ref: '#/definitions/models.GameSearch'
+        type: array
+      id:
+        type: string
+      metathemes:
+        items:
+          $ref: '#/definitions/models.Theme'
+        type: array
+      name:
+        maxLength: 100
+        minLength: 3
+        type: string
+    required:
+    - category
+    - name
+    type: object
+  models.ThemeCategory:
+    enum:
+    - THEME
+    - METATHEME
+    type: string
+    x-enum-varnames:
+    - THEME
+    - METATHEME
   models.UpdateProfileRequest:
     properties:
       image:
         example: TWFuIGlzIGRpc3Rpbmd1aXNoZWQsIG5vdCBvbmx5IGJ5IGhpcyByZWFzb24sIGJ1dCAuLi4=
         type: string
       password:
-        example: 6a4a61f57bccf059abb82fc95589ebc428629326ab965390f25224e262455beb
+        example: newSecurePassword123
+        maxLength: 64
+        minLength: 8
         type: string
       username:
         example: vasyaPupkin
@@ -219,6 +380,7 @@ definitions:
   models.User:
     properties:
       email:
+        maxLength: 256
         type: string
       id:
         type: string
@@ -231,7 +393,11 @@ definitions:
       team:
         type: string
       username:
+        maxLength: 25
         type: string
+    required:
+    - email
+    - username
     type: object
 host: localhost:8080
 info:
@@ -241,6 +407,102 @@ info:
   title: User Service API
   version: "1.0"
 paths:
+  /game/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Данный метод позволяет пользователю остановить поиск игры.
+      parameters:
+      - description: Идентификатор пользователя
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Успешная остановка поиска игры
+          schema:
+            $ref: '#/definitions/models.StopGameSearchResponse'
+        "500":
+          description: Внутренняя ошибка
+          schema:
+            $ref: '#/definitions/models.StopGameSearchResponse'
+      summary: Остановить поиск игры
+      tags:
+      - game
+    post:
+      consumes:
+      - application/json
+      description: Данный метод позволяет пользователю начать поиск игры с заданным
+        списком метатем.
+      parameters:
+      - description: Идентификатор пользователя
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Список метатем
+        in: body
+        name: metathemes
+        required: true
+        schema:
+          $ref: '#/definitions/models.AddGameSearchRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Успешное начало поиска игры
+          schema:
+            $ref: '#/definitions/models.AddGameSearchResponse'
+        "400":
+          description: Некорректные данные запроса или пользователь не найден
+          schema:
+            $ref: '#/definitions/models.AddGameSearchResponse'
+        "500":
+          description: Внутренняя ошибка
+          schema:
+            $ref: '#/definitions/models.AddGameSearchResponse'
+      summary: Начать поиск игры
+      tags:
+      - game
+  /game/spectator/{user_id}/{game_id}:
+    post:
+      consumes:
+      - application/json
+      description: Данный метод позволяет пользователю начать просмотр игры с заданным
+        идентификатором игры.
+      parameters:
+      - description: Идентификатор пользователя
+        in: path
+        name: user_id
+        required: true
+        type: string
+      - description: Идентификатор игры
+        in: path
+        name: game_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Успешное подключение к игре
+          schema:
+            $ref: '#/definitions/models.AddSpectatorResponse'
+        "400":
+          description: Игра больше не существует (завершена) или некорректные данные
+            запроса
+          schema:
+            $ref: '#/definitions/models.AddSpectatorResponse'
+        "500":
+          description: Внутренняя ошибка
+          schema:
+            $ref: '#/definitions/models.AddSpectatorResponse'
+      summary: Начать просмотр текущей игры как зритель
+      tags:
+      - game
   /rooms/{room_id}/players:
     get:
       consumes:
@@ -338,6 +600,75 @@ paths:
       summary: Создание новой игровой комнаты
       tags:
       - room
+  /theme:
+    post:
+      consumes:
+      - application/json
+      description: Данный метод позволяет предложить новую тему/метатему в системе
+      parameters:
+      - description: Предлагаемая тема
+        in: body
+        name: theme
+        required: true
+        schema:
+          $ref: '#/definitions/models.AddThemeRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Тема отправлена на валидацию
+          schema:
+            $ref: '#/definitions/models.AddThemeResponse'
+        "400":
+          description: Тема уже существует или некорректные данные
+          schema:
+            $ref: '#/definitions/models.AddThemeResponse'
+        "500":
+          description: Внутренняя ошибка
+          schema:
+            $ref: '#/definitions/models.AddThemeResponse'
+      summary: Предложение новой темы/метатемы
+      tags:
+      - theme
+  /theme/{confirmation}:
+    put:
+      consumes:
+      - application/json
+      description: Данный метод позволяет зарегистрировать/отклонить новую тему/метатему
+      parameters:
+      - description: Подтверждение темы/метатемы (YES или NO)
+        in: path
+        name: confirmation
+        required: true
+        type: string
+      - description: Предлагаемая тема
+        in: body
+        name: theme
+        required: true
+        schema:
+          $ref: '#/definitions/models.ConfirmThemeRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Тема успешно зарегистрирована
+          schema:
+            $ref: '#/definitions/models.ConfirmThemeResponse'
+        "400":
+          description: Некорректные данные или тема уже существует
+          schema:
+            $ref: '#/definitions/models.ConfirmThemeResponse'
+        "422":
+          description: Некорректные данные для подтверждения темы
+          schema:
+            $ref: '#/definitions/models.ConfirmThemeResponse'
+        "500":
+          description: Внутренняя ошибка
+          schema:
+            $ref: '#/definitions/models.ConfirmThemeResponse'
+      summary: Подтверждение/отклонение новой темы/метатемы
+      tags:
+      - theme
   /user/{id}/blackList/{username}:
     put:
       consumes:
@@ -616,9 +947,10 @@ paths:
     post:
       consumes:
       - application/json
-      description: Позволяет начать процесс восстановления пароля через email
+      description: Позволяет начать и завершить процесс восстановления пароля через
+        email
       parameters:
-      - description: Email пользователя
+      - description: Email пользователя или новый пароль
         in: body
         name: recovery
         required: true
@@ -628,61 +960,69 @@ paths:
       - application/json
       responses:
         "201":
-          description: Created
+          description: Успешное восстановление пароля
           schema:
-            $ref: '#/definitions/models.RecoveryResponse'
+            $ref: '#/definitions/models.RecoverySuccessResponse'
         "400":
-          description: Bad Request
+          description: Некорректные данные запроса
           schema:
-            $ref: '#/definitions/models.RecoveryResponse'
+            $ref: '#/definitions/models.RecoveryBadRequestResponse'
+        "404":
+          description: Суффикс восстановления не найден
+          schema:
+            $ref: '#/definitions/models.RecoveryNotFoundResponse'
+        "422":
+          description: Время действия ссылки истекло
+          schema:
+            $ref: '#/definitions/models.RecoveryUnprocessableEntityResponse'
         "500":
-          description: Internal Server Error
+          description: Внутренняя ошибка
           schema:
-            $ref: '#/definitions/models.RecoveryResponse'
-      summary: Инициация восстановления пароля
+            $ref: '#/definitions/models.RecoveryInternalServerErrorResponse'
+      summary: Восстановление пароля
       tags:
       - recovery
   /user/recovery/{recoverySuffix}:
     patch:
       consumes:
       - application/json
-      description: Позволяет завершить процесс восстановления пароля по ссылке
+      description: Позволяет начать и завершить процесс восстановления пароля через
+        email
       parameters:
       - description: Уникальный суффикс восстановления
         in: path
         name: recoverySuffix
-        required: true
         type: string
-      - description: Новый пароль
+      - description: Email пользователя или новый пароль
         in: body
         name: recovery
         required: true
         schema:
-          $ref: '#/definitions/models.ChangePasswordRequest'
+          $ref: '#/definitions/models.RecoveryRequest'
       produces:
       - application/json
       responses:
         "201":
-          description: Created
+          description: Успешное восстановление пароля
           schema:
-            $ref: '#/definitions/models.ChangePasswordResponse'
+            $ref: '#/definitions/models.RecoverySuccessResponse'
         "400":
-          description: Bad Request
+          description: Некорректные данные запроса
           schema:
-            $ref: '#/definitions/models.ChangePasswordResponse'
+            $ref: '#/definitions/models.RecoveryBadRequestResponse'
         "404":
-          description: Not Found
+          description: Суффикс восстановления не найден
           schema:
-            $ref: '#/definitions/models.ChangePasswordResponse'
+            $ref: '#/definitions/models.RecoveryNotFoundResponse'
         "422":
-          description: Unprocessable Entity
+          description: Время действия ссылки истекло
           schema:
-            $ref: '#/definitions/models.ChangePasswordResponse'
+            $ref: '#/definitions/models.RecoveryUnprocessableEntityResponse'
         "500":
-          description: Internal Server Error
+          description: Внутренняя ошибка
           schema:
-            $ref: '#/definitions/models.ChangePasswordResponse'
-      summary: Завершение восстановления пароля
+            $ref: '#/definitions/models.RecoveryInternalServerErrorResponse'
+      summary: Восстановление пароля
       tags:
       - recovery
   /user/register:

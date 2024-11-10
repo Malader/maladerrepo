@@ -15,6 +15,146 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/game/spectator/{user_id}/{game_id}": {
+            "post": {
+                "description": "Данный метод позволяет пользователю начать просмотр игры с заданным идентификатором игры.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "game"
+                ],
+                "summary": "Начать просмотр текущей игры как зритель",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Идентификатор пользователя",
+                        "name": "user_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Идентификатор игры",
+                        "name": "game_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Успешное подключение к игре",
+                        "schema": {
+                            "$ref": "#/definitions/models.AddSpectatorResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Игра больше не существует (завершена) или некорректные данные запроса",
+                        "schema": {
+                            "$ref": "#/definitions/models.AddSpectatorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка",
+                        "schema": {
+                            "$ref": "#/definitions/models.AddSpectatorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/game/{id}": {
+            "post": {
+                "description": "Данный метод позволяет пользователю начать поиск игры с заданным списком метатем.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "game"
+                ],
+                "summary": "Начать поиск игры",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Идентификатор пользователя",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Список метатем",
+                        "name": "metathemes",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.AddGameSearchRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Успешное начало поиска игры",
+                        "schema": {
+                            "$ref": "#/definitions/models.AddGameSearchResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Некорректные данные запроса или пользователь не найден",
+                        "schema": {
+                            "$ref": "#/definitions/models.AddGameSearchResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка",
+                        "schema": {
+                            "$ref": "#/definitions/models.AddGameSearchResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Данный метод позволяет пользователю остановить поиск игры.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "game"
+                ],
+                "summary": "Остановить поиск игры",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Идентификатор пользователя",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Успешная остановка поиска игры",
+                        "schema": {
+                            "$ref": "#/definitions/models.StopGameSearchResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка",
+                        "schema": {
+                            "$ref": "#/definitions/models.StopGameSearchResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/rooms/create": {
             "post": {
                 "description": "Создает новую игровую комнату с заданным именем",
@@ -162,6 +302,111 @@ const docTemplate = `{
                 }
             }
         },
+        "/theme": {
+            "post": {
+                "description": "Данный метод позволяет предложить новую тему/метатему в системе",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "theme"
+                ],
+                "summary": "Предложение новой темы/метатемы",
+                "parameters": [
+                    {
+                        "description": "Предлагаемая тема",
+                        "name": "theme",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.AddThemeRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Тема отправлена на валидацию",
+                        "schema": {
+                            "$ref": "#/definitions/models.AddThemeResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Тема уже существует или некорректные данные",
+                        "schema": {
+                            "$ref": "#/definitions/models.AddThemeResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка",
+                        "schema": {
+                            "$ref": "#/definitions/models.AddThemeResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/theme/{confirmation}": {
+            "put": {
+                "description": "Данный метод позволяет зарегистрировать/отклонить новую тему/метатему",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "theme"
+                ],
+                "summary": "Подтверждение/отклонение новой темы/метатемы",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Подтверждение темы/метатемы (YES или NO)",
+                        "name": "confirmation",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Предлагаемая тема",
+                        "name": "theme",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.ConfirmThemeRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Тема успешно зарегистрирована",
+                        "schema": {
+                            "$ref": "#/definitions/models.ConfirmThemeResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Некорректные данные или тема уже существует",
+                        "schema": {
+                            "$ref": "#/definitions/models.ConfirmThemeResponse"
+                        }
+                    },
+                    "422": {
+                        "description": "Некорректные данные для подтверждения темы",
+                        "schema": {
+                            "$ref": "#/definitions/models.ConfirmThemeResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка",
+                        "schema": {
+                            "$ref": "#/definitions/models.ConfirmThemeResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/user/authorize": {
             "post": {
                 "description": "Позволяет авторизовать пользователя в системе",
@@ -210,7 +455,7 @@ const docTemplate = `{
         },
         "/user/recovery": {
             "post": {
-                "description": "Позволяет начать процесс восстановления пароля через email",
+                "description": "Позволяет начать и завершить процесс восстановления пароля через email",
                 "consumes": [
                     "application/json"
                 ],
@@ -220,10 +465,10 @@ const docTemplate = `{
                 "tags": [
                     "recovery"
                 ],
-                "summary": "Инициация восстановления пароля",
+                "summary": "Восстановление пароля",
                 "parameters": [
                     {
-                        "description": "Email пользователя",
+                        "description": "Email пользователя или новый пароль",
                         "name": "recovery",
                         "in": "body",
                         "required": true,
@@ -234,21 +479,33 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "201": {
-                        "description": "Created",
+                        "description": "Успешное восстановление пароля",
                         "schema": {
-                            "$ref": "#/definitions/models.RecoveryResponse"
+                            "$ref": "#/definitions/models.RecoverySuccessResponse"
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "Некорректные данные запроса",
                         "schema": {
-                            "$ref": "#/definitions/models.RecoveryResponse"
+                            "$ref": "#/definitions/models.RecoveryBadRequestResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Суффикс восстановления не найден",
+                        "schema": {
+                            "$ref": "#/definitions/models.RecoveryNotFoundResponse"
+                        }
+                    },
+                    "422": {
+                        "description": "Время действия ссылки истекло",
+                        "schema": {
+                            "$ref": "#/definitions/models.RecoveryUnprocessableEntityResponse"
                         }
                     },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "Внутренняя ошибка",
                         "schema": {
-                            "$ref": "#/definitions/models.RecoveryResponse"
+                            "$ref": "#/definitions/models.RecoveryInternalServerErrorResponse"
                         }
                     }
                 }
@@ -256,7 +513,7 @@ const docTemplate = `{
         },
         "/user/recovery/{recoverySuffix}": {
             "patch": {
-                "description": "Позволяет завершить процесс восстановления пароля по ссылке",
+                "description": "Позволяет начать и завершить процесс восстановления пароля через email",
                 "consumes": [
                     "application/json"
                 ],
@@ -266,54 +523,53 @@ const docTemplate = `{
                 "tags": [
                     "recovery"
                 ],
-                "summary": "Завершение восстановления пароля",
+                "summary": "Восстановление пароля",
                 "parameters": [
                     {
                         "type": "string",
                         "description": "Уникальный суффикс восстановления",
                         "name": "recoverySuffix",
-                        "in": "path",
-                        "required": true
+                        "in": "path"
                     },
                     {
-                        "description": "Новый пароль",
+                        "description": "Email пользователя или новый пароль",
                         "name": "recovery",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.ChangePasswordRequest"
+                            "$ref": "#/definitions/models.RecoveryRequest"
                         }
                     }
                 ],
                 "responses": {
                     "201": {
-                        "description": "Created",
+                        "description": "Успешное восстановление пароля",
                         "schema": {
-                            "$ref": "#/definitions/models.ChangePasswordResponse"
+                            "$ref": "#/definitions/models.RecoverySuccessResponse"
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "Некорректные данные запроса",
                         "schema": {
-                            "$ref": "#/definitions/models.ChangePasswordResponse"
+                            "$ref": "#/definitions/models.RecoveryBadRequestResponse"
                         }
                     },
                     "404": {
-                        "description": "Not Found",
+                        "description": "Суффикс восстановления не найден",
                         "schema": {
-                            "$ref": "#/definitions/models.ChangePasswordResponse"
+                            "$ref": "#/definitions/models.RecoveryNotFoundResponse"
                         }
                     },
                     "422": {
-                        "description": "Unprocessable Entity",
+                        "description": "Время действия ссылки истекло",
                         "schema": {
-                            "$ref": "#/definitions/models.ChangePasswordResponse"
+                            "$ref": "#/definitions/models.RecoveryUnprocessableEntityResponse"
                         }
                     },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "Внутренняя ошибка",
                         "schema": {
-                            "$ref": "#/definitions/models.ChangePasswordResponse"
+                            "$ref": "#/definitions/models.RecoveryInternalServerErrorResponse"
                         }
                     }
                 }
@@ -812,6 +1068,55 @@ const docTemplate = `{
                 }
             }
         },
+        "models.AddGameSearchRequest": {
+            "type": "object",
+            "required": [
+                "metathemes"
+            ],
+            "properties": {
+                "metathemes": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "models.AddGameSearchResponse": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "$ref": "#/definitions/models.Error"
+                }
+            }
+        },
+        "models.AddSpectatorResponse": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "$ref": "#/definitions/models.Error"
+                }
+            }
+        },
+        "models.AddThemeRequest": {
+            "type": "object",
+            "required": [
+                "theme"
+            ],
+            "properties": {
+                "theme": {
+                    "$ref": "#/definitions/models.Theme"
+                }
+            }
+        },
+        "models.AddThemeResponse": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "$ref": "#/definitions/models.Error"
+                }
+            }
+        },
         "models.AuthorizeRequest": {
             "type": "object",
             "required": [
@@ -821,7 +1126,9 @@ const docTemplate = `{
             "properties": {
                 "password": {
                     "type": "string",
-                    "example": "6a4a61f57bccf059abb82fc95589ebc428629326ab965390f25224e262455beb"
+                    "maxLength": 64,
+                    "minLength": 8,
+                    "example": "securePassword123"
                 },
                 "username": {
                     "type": "string",
@@ -841,21 +1148,7 @@ const docTemplate = `{
                 }
             }
         },
-        "models.ChangePasswordRequest": {
-            "type": "object",
-            "required": [
-                "newPassword"
-            ],
-            "properties": {
-                "newPassword": {
-                    "type": "string",
-                    "maxLength": 64,
-                    "minLength": 8,
-                    "example": "newSecurePassword123"
-                }
-            }
-        },
-        "models.ChangePasswordResponse": {
+        "models.ConfirmFriendRequestResponse": {
             "type": "object",
             "properties": {
                 "error": {
@@ -863,7 +1156,24 @@ const docTemplate = `{
                 }
             }
         },
-        "models.ConfirmFriendRequestResponse": {
+        "models.ConfirmThemeRequest": {
+            "type": "object",
+            "required": [
+                "theme"
+            ],
+            "properties": {
+                "metathemes": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "theme": {
+                    "$ref": "#/definitions/models.Theme"
+                }
+            }
+        },
+        "models.ConfirmThemeResponse": {
             "type": "object",
             "properties": {
                 "error": {
@@ -904,6 +1214,34 @@ const docTemplate = `{
                 "username": {
                     "type": "string",
                     "example": "VasyaPupkin"
+                }
+            }
+        },
+        "models.GameSearch": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "metathemes": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Theme"
+                    }
+                },
+                "spectators": {
+                    "description": "Добавленное поле для зрителей",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.User"
+                    }
+                },
+                "status": {
+                    "description": "\"searching\", \"found\", \"stopped\"",
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "string"
                 }
             }
         },
@@ -971,6 +1309,69 @@ const docTemplate = `{
                 }
             }
         },
+        "models.RecoveryBadRequestError": {
+            "type": "object",
+            "properties": {
+                "errorCode": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "errorDescription": {
+                    "type": "string",
+                    "example": "Аккаунт с указанным Email не существует"
+                }
+            }
+        },
+        "models.RecoveryBadRequestResponse": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "$ref": "#/definitions/models.RecoveryBadRequestError"
+                }
+            }
+        },
+        "models.RecoveryInternalServerError": {
+            "type": "object",
+            "properties": {
+                "errorCode": {
+                    "type": "integer",
+                    "example": 999
+                },
+                "errorDescription": {
+                    "type": "string",
+                    "example": "Внутренняя ошибка"
+                }
+            }
+        },
+        "models.RecoveryInternalServerErrorResponse": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "$ref": "#/definitions/models.RecoveryInternalServerError"
+                }
+            }
+        },
+        "models.RecoveryNotFoundError": {
+            "type": "object",
+            "properties": {
+                "errorCode": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "errorDescription": {
+                    "type": "string",
+                    "example": "Уникальный суффикс восстановления не найден"
+                }
+            }
+        },
+        "models.RecoveryNotFoundResponse": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "$ref": "#/definitions/models.RecoveryNotFoundError"
+                }
+            }
+        },
         "models.RecoveryRequest": {
             "type": "object",
             "required": [
@@ -984,11 +1385,45 @@ const docTemplate = `{
                 }
             }
         },
-        "models.RecoveryResponse": {
+        "models.RecoverySuccessError": {
+            "type": "object",
+            "properties": {
+                "errorCode": {
+                    "type": "integer",
+                    "example": 0
+                },
+                "errorDescription": {
+                    "type": "string",
+                    "example": ""
+                }
+            }
+        },
+        "models.RecoverySuccessResponse": {
             "type": "object",
             "properties": {
                 "error": {
-                    "$ref": "#/definitions/models.Error"
+                    "$ref": "#/definitions/models.RecoverySuccessError"
+                }
+            }
+        },
+        "models.RecoveryUnprocessableEntityError": {
+            "type": "object",
+            "properties": {
+                "errorCode": {
+                    "type": "integer",
+                    "example": 2
+                },
+                "errorDescription": {
+                    "type": "string",
+                    "example": "Время действия ссылки истекло, повторите процедуру"
+                }
+            }
+        },
+        "models.RecoveryUnprocessableEntityResponse": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "$ref": "#/definitions/models.RecoveryUnprocessableEntityError"
                 }
             }
         },
@@ -1007,7 +1442,9 @@ const docTemplate = `{
                 },
                 "password": {
                     "type": "string",
-                    "example": "6a4a61f57bccf059abb82fc95589ebc428629326ab965390f25224e262455beb"
+                    "maxLength": 64,
+                    "minLength": 8,
+                    "example": "securePassword123"
                 },
                 "username": {
                     "type": "string",
@@ -1032,6 +1469,65 @@ const docTemplate = `{
                 }
             }
         },
+        "models.StopGameSearchResponse": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "$ref": "#/definitions/models.Error"
+                }
+            }
+        },
+        "models.Theme": {
+            "type": "object",
+            "required": [
+                "category",
+                "name"
+            ],
+            "properties": {
+                "category": {
+                    "enum": [
+                        "THEME",
+                        "METATHEME"
+                    ],
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.ThemeCategory"
+                        }
+                    ]
+                },
+                "game_searches": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.GameSearch"
+                    }
+                },
+                "id": {
+                    "type": "string"
+                },
+                "metathemes": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Theme"
+                    }
+                },
+                "name": {
+                    "type": "string",
+                    "maxLength": 100,
+                    "minLength": 3
+                }
+            }
+        },
+        "models.ThemeCategory": {
+            "type": "string",
+            "enum": [
+                "THEME",
+                "METATHEME"
+            ],
+            "x-enum-varnames": [
+                "THEME",
+                "METATHEME"
+            ]
+        },
         "models.UpdateProfileRequest": {
             "type": "object",
             "properties": {
@@ -1041,7 +1537,9 @@ const docTemplate = `{
                 },
                 "password": {
                     "type": "string",
-                    "example": "6a4a61f57bccf059abb82fc95589ebc428629326ab965390f25224e262455beb"
+                    "maxLength": 64,
+                    "minLength": 8,
+                    "example": "newSecurePassword123"
                 },
                 "username": {
                     "type": "string",
@@ -1060,9 +1558,14 @@ const docTemplate = `{
         },
         "models.User": {
             "type": "object",
+            "required": [
+                "email",
+                "username"
+            ],
             "properties": {
                 "email": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 256
                 },
                 "id": {
                     "type": "string"
@@ -1080,7 +1583,8 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "username": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 25
                 }
             }
         }

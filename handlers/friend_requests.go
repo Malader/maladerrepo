@@ -336,29 +336,20 @@ func DeleteFriendHandler(c *gin.Context) {
 		return
 	}
 
-	// Нужно пофиксить
-	//has, err := DB.Model(&user).Association("Friends").Has(&friend)
-	//if err != nil {
-	//	c.JSON(http.StatusInternalServerError, models.DeleteFriendResponse{
-	//		Error: models.Error{
-	//			ErrorCode:        999,
-	//			ErrorDescription: "Внутренняя ошибка",
-	//		},
-	//	})
-	//	return
-	//}
-	//
-	//if !has {
-	//	c.JSON(http.StatusBadRequest, models.DeleteFriendResponse{
-	//		Error: models.Error{
-	//			ErrorCode:        999,
-	//			ErrorDescription: "Пользователь не является вашим другом",
-	//		},
-	//	})
-	//	return
-	//}
+	var count int64
+	DB.Table("user_friends").Where("user_id = ? AND friend_id = ?", user.ID, friend.ID).Count(&count)
+	if count == 0 {
+		c.JSON(http.StatusBadRequest, models.DeleteFriendResponse{
+			Error: models.Error{
+				ErrorCode:        999,
+				ErrorDescription: "Пользователь не является вашим другом",
+			},
+		})
+		return
+	}
 
-	if err := DB.Model(&user).Association("Friends").Delete(&friend); err != nil {
+	DB.Model(&user).Association("Friends").Delete(&friend)
+	if DB.Error != nil {
 		c.JSON(http.StatusInternalServerError, models.DeleteFriendResponse{
 			Error: models.Error{
 				ErrorCode:        999,
@@ -368,7 +359,8 @@ func DeleteFriendHandler(c *gin.Context) {
 		return
 	}
 
-	if err := DB.Model(&friend).Association("Friends").Delete(&user); err != nil {
+	DB.Model(&friend).Association("Friends").Delete(&user)
+	if DB.Error != nil {
 		c.JSON(http.StatusInternalServerError, models.DeleteFriendResponse{
 			Error: models.Error{
 				ErrorCode:        999,

@@ -2,13 +2,11 @@ package handlers
 
 import (
 	"encoding/base64"
-	"net/http"
-	"time"
-
 	"github.com/Malader/maladerrepo/models"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
+	"net/http"
 )
 
 // UpdateProfileHandler обрабатывает запросы на изменение информации профиля пользователя
@@ -173,8 +171,8 @@ func GetProfileHandler(c *gin.Context) {
 		Email:            user.Email,
 		Username:         user.Username,
 		Password:         user.PasswordHash,
-		RegistrationDate: user.CreatedAt.Time,
-		LastActivityDate: time.Now(),
+		RegistrationDate: user.CreatedAt,
+		LastActivityDate: user.LastActivityDate,
 		Image:            user.Image,
 		Error: models.Error{
 			ErrorCode:        0,

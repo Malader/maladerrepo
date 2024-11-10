@@ -74,27 +74,17 @@ func AddToBlacklistHandler(c *gin.Context) {
 		return
 	}
 
-	// Нужно пофиксить
-	//has, err := DB.Model(&user).Association("BlacklistedUsers").Has(&target)
-	//if err != nil {
-	//	c.JSON(http.StatusInternalServerError, models.AddBlacklistResponse{
-	//		Error: models.Error{
-	//			ErrorCode:        999,
-	//			ErrorDescription: "Внутренняя ошибка",
-	//		},
-	//	})
-	//	return
-	//}
-	//
-	//if has {
-	//	c.JSON(http.StatusBadRequest, models.AddBlacklistResponse{
-	//		Error: models.Error{
-	//			ErrorCode:        999,
-	//			ErrorDescription: "Пользователь уже находится в черном списке",
-	//		},
-	//	})
-	//	return
-	//}
+	var count int64
+	DB.Table("user_blacklists").Where("user_id = ? AND blacklisted_user_id = ?", user.ID, target.ID).Count(&count)
+	if count > 0 {
+		c.JSON(http.StatusBadRequest, models.AddBlacklistResponse{
+			Error: models.Error{
+				ErrorCode:        999,
+				ErrorDescription: "Пользователь уже находится в черном списке",
+			},
+		})
+		return
+	}
 
 	if err := DB.Model(&user).Association("BlacklistedUsers").Append(&target); err != nil {
 		c.JSON(http.StatusInternalServerError, models.AddBlacklistResponse{
